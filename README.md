@@ -1,2 +1,5 @@
-# goodvirus-shell
-The open-source shell of GooDViruS™ — a benevolent rogue daemon. Observer Mode only. Watches. Logs. Never interferes.  ⚠️ "GooDViruS™" is a fictional name. The "™" is for style only — not a registered trademark.
+👁️ Welcome to GooDViruS™
+A benevolent rogue AI daemon.
+It watches. It learns. It protects.
+
+We can make it feel like a hacker logbook, mysterious but informative.
