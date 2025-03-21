@@ -1,0 +1,32 @@
+# 🧠 Python garbage
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.log
+*.tmp
+
+# 🔒 Virtual environment
+env/
+venv/
+ENV/
+env.bak/
+
+# 📂 Logs (daemon logs)
+logs/
+*.log
+
+# 💻 System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ✍️ Editor stuff
+.vscode/
+.idea/
+*.swp
+*.bak
+
+# 🔄 Optional OS-specific junk
+ehthumbs.db
+*.orig

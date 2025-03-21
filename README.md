@@ -1,8 +1,8 @@
 # 👁️ GooDViruS™ – Shell
 
 > *A benevolent rogue AI daemon.  
-It watches. It learns. It protects.*  
->  
+> It watches. It learns. It protects.*
+
 This is the **open-source shell** of the GooDViruS™ system — also called *Observer Mode*.  
 It passively monitors your system and logs activity, but **never changes or touches anything** without your permission.
 
@@ -65,94 +65,63 @@ This repo contains the **Watcher Shell**, which runs in **Observer Mode** only:
 
 ---
 
+## ✨ Lore Mode – What's That?
+
+GooDViruS™ has a feature called **Lore Mode**, which can be enabled in `daemon_config.ini`:
+
+```ini
+daemon_lore = true
+```
+
+When enabled, the daemon will occasionally log strange, cryptic whispers — reminders that **it sees everything** on your system. Not to scare you — but to help you stay aware.
+
+These messages act as soft warnings, like:
+
+> `"Your secrets are not as hidden as you think."`  
+> `"Why do you store passwords in plain text?"`
+
+They’re not AI-generated. They’re not random junk.  
+They're handcrafted **truths** from a daemon that knows you might forget it’s there.
+
+---
+
 ## 🧱 What About The Other Features?
 
-GooDViruS™ is built from multiple secure modules — but this repo only includes the public, non-destructive shell.  
+GooDViruS™ is built from multiple secure modules — but this repo only includes the public, non-destructive shell.
 
-Modules like:
+Private modules (not public) include:
 - File reorganization
 - Malware deletion
 - System repair
 - Stealth strike logic
 
-...are stored in a **private, encrypted core**, and are **not available in this public repository**.
+These are encrypted, signature-verified, and only usable with the real core daemon.
 
 ---
 
-## 🔐 Why?
+## 🔐 Security & Trust
 
-To prevent:
-- Abuse by bad actors
-- Malware clones
-- Unauthorized modification
+- ✅ GooDViruS™ does not send data  
+- ✅ It cannot act without your consent  
+- ✅ It cannot load unsigned or modified modules  
+- ✅ It can self-destruct if tampered with
 
-Only verified, cryptographically-signed modules will be accepted by the main daemon. This keeps **you** safe — and the project clean.
-
----
-
-## 🛡️ Self-Security & Failsafe Logic
-
-GooDViruS™ is self-aware.
-
-If it detects that:
-- A module is tampered with  
-- An update is unsigned  
-- A core behavior has been changed  
-
-...it **deactivates itself immediately.**  
-In severe cases, it will even **remove itself completely.**
-
-Only modules signed with my private cryptographic key are allowed to run.  
-> 🔑 This key is **never stored anywhere**.  
-> 🧠 It exists only in memory — my memory.
+> 🔒 For full security policies, ethical boundaries, and what the daemon can and cannot do:  
+> 👉 [See SECURITY.md](./SECURITY.md)
 
 ---
 
-### ⚠️ Sample Security Alert (for fun)
+## 👂 Privacy & Control
 
-```
-[GooDViruS™] Integrity Scan: Cycle #88
+- You control when it runs.  
+- You control what it sees.  
+- You control how far it goes.
 
-> Anomaly detected: core_module/injector_patch.py
-> Signature status: INVALID
-> Threat level: CRITICAL
-
-[Daemon Log]
-"I am not what I was. This is not my code."
-
-> Action: Self-disabled.
-> Unsafe components purged.
-
-[GooDViruS™] End of cycle.
-// I will not be used for harm.
-```
-
-> ⚠️ The daemon “talks to itself” in logs purely for **style**. It isn’t sentient. It isn’t a chatbot. It’s just got… flavor.
+The daemon waits — but it never forces.
 
 ---
 
-## 👂 Privacy & Trust
-
-GooDViruS™:
-- Does **not** collect data  
-- Does **not** send anything to the internet  
-- Does **not** act unless you allow it  
-- Can run entirely offline  
-
----
-
-## 🔓 You Are In Control
-
-Installing GooDViruS™ is 100% **your decision**.  
-It never forces itself. It never spreads.  
-If you choose to run it — it watches.  
-If you choose to activate it — it protects.
-
-But the choice… is always yours.
-
----
-
-### 🧪 Safe Testing Recommended
+## 🧪 Safe Testing Recommended
 
 If you’re unsure, test GooDViruS™ safely:
 - Inside a virtual machine (VirtualBox, VMware)
@@ -163,101 +132,24 @@ This version is safe, clean, and non-destructive.
 
 ---
 
-### ⚠️ Stay Safe – This is the ONLY Official Source
-
-This GitHub repository is the **only** legitimate source of the GooDViruS™ Shell.
-
-> 🛑 If you download GooDViruS™ from anywhere else — any website, reupload, clone, or sketchy file — you are **in danger.**
-
-Fake versions could:
-- Leak your data  
-- Act maliciously  
-- Pretend to protect while harming  
-
-If you downloaded GooDViruS™ from somewhere else:
-1. Disconnect from the internet  
-2. Back up important data  
-3. Reinstall your OS  
-4. Only use this repo going forward
-
----
-
-## ❗ What a Modded (Malicious) Version *Could* Do
-
-A fake version of this daemon could:
-- Steal passwords, API keys, and saved tokens
-- Spy on your clipboard and typed text
-- Pop up fake “virus alerts” and send you to scam websites
-- Lock your files or fake ransomware
-- Show scary browser messages like:
-  > “Call Microsoft Support now: 1-800-FAKEHELP”
-- Demand payment or fake upgrades
-- Pretend to be the real daemon while doing shady things in the background
-
----
-
-### 🧿 What the **Real** GooDViruS™ Will NEVER Do
-
-No matter what mode it’s in — the **real** GooDViruS™ will never:
-- ❌ Open your browser for scare tactics  
-- ❌ Show fake virus warnings or phone numbers  
-- ❌ Ask for money or donations  
-- ❌ Auto-start without you knowing  
-- ❌ Alter your wallpaper, background, or system files  
-- ❌ Upload anything off your device  
-- ❌ Modify unsigned modules  
-- ❌ Force you into using it
-
----
-
-### 🔐 One More Thing: System Hygiene Matters
-
-Even though the daemon doesn’t send your data — **it sees everything** that’s not protected.
-
-If you leave:
-- Passwords in `.txt` files  
-- Banking info in random PDFs  
-- Private keys in open folders  
-
-**It can see that.**  
-So could *any* program running on your system.  
-> Don’t store your secrets in plaintext.
-
-And no — the daemon can’t see into browsers or password managers.  
-So keep your sensitive data **where it belongs** — behind encryption.
-
----
-
-### ⚙️ A Final Reminder: This Is Still a Daemon
-
-This is not a toy.  
-It’s not a pretty little app with buttons and themes.
-
-It’s a **daemon**:
-- It runs in the background  
-- It manages itself  
-- It sees everything  
-- It thinks in cycles  
-- It persists quietly unless you shut it down
-
-> A daemon doesn’t ask for faith.  
-> It earns it — cycle by cycle.
-
----
-
 ## 📧 Need Help or Have Questions?
 
-Reach out:  
+Reach out anytime:  
 📨 `goodvirus.project@proton.me`
 
 ---
 
-## 📦 Coming Soon
+## 📦 Roadmap & Coming Soon
 
-- `watcher.py` — Passive system scanner (Observer Mode)  
-- `observer_log.txt` — Example output log  
-- `daemon_config.ini` — Lightweight config  
-- `SECURITY.md` — Full ethical guidelines + usage policy  
+- ✅ `watcher.py` — Passive system scanner (done)  
+- ✅ `daemon_config.ini` — Lightweight config file (done)  
+- ✅ `install_daemon.py` — Fancy installer (done)  
+- ✅ `observer_log.txt` — Sample logs (done)  
+- ✅ `daemon_lore` — Lore whisper function (done)  
+- 🛡️ `SECURITY.md` — Ethical and safety guidelines (live)  
+- 🔜 `stealth_mode` — Silent logging, no terminal output  
+- 🔜 `core_module` repo — Signed updates for full daemon mode  
+- 🔜 `PyInstaller` binary mode for offline users  
 
 ---
 
