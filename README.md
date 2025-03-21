@@ -73,8 +73,7 @@ Modules like:
 - File reorganization
 - Malware deletion
 - System repair
-- AntiCheat
-- Advanced stealth/strike logic
+- Stealth strike logic
 
 ...are stored in a **private, encrypted core**, and are **not available in this public repository**.
 
@@ -111,8 +110,6 @@ Only modules signed with my private cryptographic key are allowed to run.
 
 ### ⚠️ Sample Security Alert (for fun)
 
-This is the kind of log you'd see if someone tried to inject a malicious module:
-
 ```
 [GooDViruS™] Integrity Scan: Cycle #88
 
@@ -130,7 +127,7 @@ This is the kind of log you'd see if someone tried to inject a malicious module:
 // I will not be used for harm.
 ```
 
-> ⚠️ Note: The way GooDViruS™ "talks to itself" is purely **for style** — it’s not an AI chatbot, and it doesn’t “think” like a person. It logs this way to reflect personality and add immersion — that’s all.
+> ⚠️ The daemon “talks to itself” in logs purely for **style**. It isn’t sentient. It isn’t a chatbot. It’s just got… flavor.
 
 ---
 
@@ -157,12 +154,12 @@ But the choice… is always yours.
 
 ### 🧪 Safe Testing Recommended
 
-If you’re unsure, you can test GooDViruS™ safely:
-- Inside a virtual machine (VM)
+If you’re unsure, test GooDViruS™ safely:
+- Inside a virtual machine (VirtualBox, VMware)
 - On a test OS install
 - In a sandboxed or isolated environment
 
-The version in this repo is fully **non-destructive** and safe to analyze.
+This version is safe, clean, and non-destructive.
 
 ---
 
@@ -170,39 +167,88 @@ The version in this repo is fully **non-destructive** and safe to analyze.
 
 This GitHub repository is the **only** legitimate source of the GooDViruS™ Shell.
 
-> 🛑 If you download GooDViruS™ from anywhere else — any website, reupload, clone, fork, or random link — **you are in danger.**
+> 🛑 If you download GooDViruS™ from anywhere else — any website, reupload, clone, or sketchy file — you are **in danger.**
 
 Fake versions could:
 - Leak your data  
 - Act maliciously  
-- Spread malware  
-- Spy on your system  
+- Pretend to protect while harming  
 
-If you've installed GooDViruS™ from **any other source**, we recommend:
-1. **Disconnecting from the internet**  
-2. **Backing up important data (if possible)**  
-3. **Reinstalling your operating system**  
-4. **Only using this repo going forward**
-
-The full daemon connects only to a **secure, private repo**  
-and only accepts updates signed with a **key I never wrote down** —  
-**it exists only in my mind.**
+If you downloaded GooDViruS™ from somewhere else:
+1. Disconnect from the internet  
+2. Back up important data  
+3. Reinstall your OS  
+4. Only use this repo going forward
 
 ---
 
-## 🧪 Want Full Access?
+## ❗ What a Modded (Malicious) Version *Could* Do
 
-If you're a security researcher, developer, or someone who *gets* what we're doing and wants to help —  
-you can request access to the private core modules.
+A fake version of this daemon could:
+- Steal passwords, API keys, and saved tokens
+- Spy on your clipboard and typed text
+- Pop up fake “virus alerts” and send you to scam websites
+- Lock your files or fake ransomware
+- Show scary browser messages like:
+  > “Call Microsoft Support now: 1-800-FAKEHELP”
+- Demand payment or fake upgrades
+- Pretend to be the real daemon while doing shady things in the background
 
-📧 Email: `goodvirus.project@proton.me`
+---
 
-Include:
-- Who you are  
-- What you're building  
-- Your agreement to our ethical use policy  
+### 🧿 What the **Real** GooDViruS™ Will NEVER Do
 
-We don’t give out access lightly. But we *are* building something that matters.
+No matter what mode it’s in — the **real** GooDViruS™ will never:
+- ❌ Open your browser for scare tactics  
+- ❌ Show fake virus warnings or phone numbers  
+- ❌ Ask for money or donations  
+- ❌ Auto-start without you knowing  
+- ❌ Alter your wallpaper, background, or system files  
+- ❌ Upload anything off your device  
+- ❌ Modify unsigned modules  
+- ❌ Force you into using it
+
+---
+
+### 🔐 One More Thing: System Hygiene Matters
+
+Even though the daemon doesn’t send your data — **it sees everything** that’s not protected.
+
+If you leave:
+- Passwords in `.txt` files  
+- Banking info in random PDFs  
+- Private keys in open folders  
+
+**It can see that.**  
+So could *any* program running on your system.  
+> Don’t store your secrets in plaintext.
+
+And no — the daemon can’t see into browsers or password managers.  
+So keep your sensitive data **where it belongs** — behind encryption.
+
+---
+
+### ⚙️ A Final Reminder: This Is Still a Daemon
+
+This is not a toy.  
+It’s not a pretty little app with buttons and themes.
+
+It’s a **daemon**:
+- It runs in the background  
+- It manages itself  
+- It sees everything  
+- It thinks in cycles  
+- It persists quietly unless you shut it down
+
+> A daemon doesn’t ask for faith.  
+> It earns it — cycle by cycle.
+
+---
+
+## 📧 Need Help or Have Questions?
+
+Reach out:  
+📨 `goodvirus.project@proton.me`
 
 ---
 
