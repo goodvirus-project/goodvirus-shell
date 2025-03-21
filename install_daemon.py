@@ -3,10 +3,13 @@ import subprocess
 import sys
 import time
 import shutil
+import urllib.request
+import platform
 
 VENV_DIR = "env"
 REQUIREMENTS_FILE = "requirements.txt"
 WATCHER_SCRIPT = "src/watcher.py"
+PYTHON_MIN_VERSION = (3, 6)
 
 def log(msg):
     print(f"[GooDViruS™ Installer] {msg}")
@@ -21,10 +24,64 @@ def slowlog(msg, dots=3, delay=0.2):
 def banner():
     print("\n")
     print(" ╔════════════════════════════════════╗")
-    print(" ║       Summoning: GooDViruS™        ║")
-    print(" ║      Ethical Daemon Installer      ║")
+    print(" ║      Summoning: GooDViruS™        ║")
+    print(" ║     Ethical Daemon Installer      ║")
     print(" ╚════════════════════════════════════╝\n")
     time.sleep(0.5)
+
+def is_python_installed():
+    return shutil.which("python") or shutil.which("python3")
+
+def install_python_linux():
+    log("Attempting to install Python on Linux...")
+    distro = platform.linux_distribution()[0].lower() if hasattr(platform, "linux_distribution") else ""
+
+    if shutil.which("apt"):
+        subprocess.run(["sudo", "apt", "update"])
+        subprocess.run(["sudo", "apt", "install", "-y", "python3", "python3-venv", "python3-pip"])
+    elif shutil.which("dnf"):
+        subprocess.run(["sudo", "dnf", "install", "-y", "python3", "python3-pip"])
+    elif shutil.which("pacman"):
+        subprocess.run(["sudo", "pacman", "-Sy", "--noconfirm", "python", "python-pip"])
+    else:
+        log("❌ No supported package manager found. Install Python manually.")
+        sys.exit(1)
+
+def download_python_windows():
+    url = "https://www.python.org/ftp/python/3.11.8/python-3.11.8-amd64.exe"
+    local_file = "python-installer.exe"
+    print(f"\n[GooDViruS™ Installer] Downloading Python installer from:\n{url}\n")
+    urllib.request.urlretrieve(url, local_file)
+    print("[GooDViruS™ Installer] Running installer...")
+    subprocess.run([local_file], shell=True)
+
+def check_python_or_prompt():
+    if sys.version_info < PYTHON_MIN_VERSION:
+        print("[GooDViruS™ Installer] ❌ Your Python version is too old.")
+        sys.exit(1)
+
+    if is_python_installed():
+        return
+
+    print("\n[GooDViruS™ Installer] ❗ Python is not installed.")
+    print("1 = Download / Install it now")
+    print("2 = Cancel and exit\n")
+
+    choice = input("> ").strip()
+
+    if choice == "1":
+        if platform.system() == "Windows":
+            download_python_windows()
+        elif platform.system() == "Linux":
+            install_python_linux()
+        else:
+            log("❌ Unsupported OS. Please install Python manually.")
+            sys.exit(1)
+        print("\n[GooDViruS™ Installer] After installing Python, re-run this script.")
+        sys.exit(0)
+    else:
+        print("[GooDViruS™ Installer] Exiting. The daemon waits.")
+        sys.exit(0)
 
 def find_pip(scripts_dir):
     possible_names = ["pip", "pip3", "pip.exe", "pip3.exe", "pip.bat"]
@@ -36,11 +93,8 @@ def find_pip(scripts_dir):
 
 def run_installer():
     banner()
+    check_python_or_prompt()
     log("Initializing secure daemon environment...")
-
-    if sys.version_info < (3, 6):
-        log("❌ Python 3.6 or higher is required.")
-        sys.exit(1)
 
     if not os.path.exists(VENV_DIR):
         slowlog("Creating isolated environment")
@@ -65,7 +119,7 @@ def run_installer():
 
     slowlog("Installing required modules from requirements.txt")
     result = subprocess.run([pip_executable, "install", "-r", REQUIREMENTS_FILE])
-    
+
     if result.returncode != 0:
         log("❌ Failed to install required modules.")
         sys.exit(1)
