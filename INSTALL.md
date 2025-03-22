@@ -1,4 +1,3 @@
-```markdown
 # 🛠️ GooDViruS™ Installation & Setup Guide
 
 Welcome! This guide walks you through installing, configuring, and running GooDViruS™ — even if you're not a tech expert.
@@ -28,7 +27,7 @@ Welcome! This guide walks you through installing, configuring, and running GooDV
 
 ### 2. Open a Terminal
 
-- **Windows:** Open PowerShell or CMD
+- **Windows:** Open PowerShell or CMD  
 - **macOS/Linux:** Open Terminal
 
 ---
@@ -39,7 +38,7 @@ Welcome! This guide walks you through installing, configuring, and running GooDV
 python -m venv env
 ```
 
-#### Activate it:
+### Activate it:
 
 - **Windows:**
 
@@ -53,7 +52,7 @@ python -m venv env
 source env/bin/activate
 ```
 
-You’ll know it's active when your terminal line starts with `(env)`
+You'll know it's active if you see `(env)` at the beginning of your terminal line.
 
 ---
 
@@ -73,21 +72,30 @@ You should see: `Successfully installed goodvirus`
 goodvirus
 ```
 
-It will begin scanning your system and logging any suspicious behavior.
+It will start scanning your system and logging any suspicious behavior.
 
 ---
 
 ## 🧾 Configuration File
 
-Edit this file:
+Open this file to configure the daemon:
 
 ```
 goodvirus/config/daemon_config.ini
 ```
 
-Available options:
+### Options:
 
-```
+| Key             | Description                          | Default |
+|------------------|--------------------------------------|---------|
+| `interval`       | Delay between scans (in seconds)     | `10`    |
+| `stealth_mode`   | Hide output in terminal              | `false` |
+| `daemon_lore`    | Enable creepy lore messages          | `false` |
+| `show_signature` | Show signature after each alert      | `true`  |
+
+### Example:
+
+```ini
 [Daemon]
 interval = 15
 stealth_mode = false
@@ -99,9 +107,11 @@ show_signature = true
 
 ## 🔄 Updating
 
-GooDViruS™ checks PyPI for updates automatically every 10 minutes and upgrades itself if needed.
+GooDViruS™ updates itself automatically via PyPI.
 
-You can also update manually:
+It checks for new versions every 10 minutes and installs updates automatically.
+
+You can also manually update it anytime with:
 
 ```bash
 pip install --upgrade goodvirus
@@ -111,13 +121,13 @@ pip install --upgrade goodvirus
 
 ## 🧯 Troubleshooting
 
-### `command not found` or `'goodvirus' is not recognized`?
+### ❗ `'goodvirus' is not recognized` or `command not found`?
 
 Make sure:
-- Python was installed with “Add to PATH” checked
-- Your virtual environment is activated (`(env)` shows in terminal)
+- Python is correctly installed with "Add to PATH"
+- Your virtual environment is activated (you see `(env)`)
 
-### Still stuck?
+### ❗ Still having issues?
 
 Try reinstalling:
 
@@ -143,4 +153,3 @@ https://github.com/yourusername/goodvirus-shell/issues
 
 Stay aware. Stay protected.  
 **GooDViruS™ is always watching — for the right reasons.**
-```
