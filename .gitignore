@@ -1,32 +1,35 @@
-# 🧠 Python garbage
+
+---
+
+## 🛡️ `.gitignore` for Public GitHub (Shell Version)
+
+```gitignore
+# Ignore Python artifacts
 __pycache__/
 *.py[cod]
-*.pyo
-*.pyd
-*.log
-*.tmp
+*.egg-info/
+build/
+dist/
 
-# 🔒 Virtual environment
-env/
-venv/
-ENV/
-env.bak/
-
-# 📂 Logs (daemon logs)
+# Ignore logs and memory
 logs/
 *.log
 
-# 💻 System files
+# Virtualenv
+env/
+venv/
+
+# System files
 .DS_Store
 Thumbs.db
-desktop.ini
 
-# ✍️ Editor stuff
+# Memory and critical internals
+**/gv_memory.json
+**/bankinfo.txt
+*.secret
+*.bak
+
+# IDE/editor junk
 .vscode/
 .idea/
 *.swp
-*.bak
-
-# 🔄 Optional OS-specific junk
-ehthumbs.db
-*.orig

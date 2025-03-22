@@ -5,13 +5,14 @@ import configparser
 import os
 import random
 import sys
+import subprocess
+import requests
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from core.memory_handler import remember_file, load_memory
-from core.virus_detection import is_potentially_malicious
-from core.update_manager import check_and_trigger_update
+from goodvirus.__about__ import __version__, __title__
+from goodvirus.core.memory_handler import remember_file
+from goodvirus.core.virus_detection import is_potentially_malicious
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = os.path.join(BASE_DIR, "config", "daemon_config.ini")
 LOG_FILE = os.path.join(BASE_DIR, "logs", "observer_log.txt")
 
@@ -71,6 +72,27 @@ def targeted_lore(filename):
     elif "login" in name:
         return "I see the login file. Who else might?"
     return f"You thought '{filename.strip()}' could hide from me?"
+
+def check_for_updates(auto_update=True):
+    log(f"[INFO]    GooDViruS™ v{__version__} — Checking for updates...")
+
+    try:
+        response = requests.get(f"https://pypi.org/pypi/{__title__}/json", timeout=5)
+        latest = response.json()["info"]["version"]
+
+        if __version__ != latest:
+            log(f"[UPDATE]  Update available → v{latest}")
+            if auto_update:
+                log(f"[UPDATE]  Running pip install --upgrade {__title__}")
+                subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", __title__], check=True)
+                log("[UPDATE]  Update complete. Please restart GooDViruS™.\n")
+            return True
+        else:
+            log("[INFO]    You are running the latest version.")
+    except Exception as e:
+        log(f"[ERROR]   Update check failed: {e}")
+
+    return False
 
 def observe_system(cycle_count, lore_enabled, stealth):
     global last_lore_time
@@ -189,7 +211,7 @@ def run_daemon():
     log("[DEBUG]   Entering observer loop...")
 
     last_update_check = time.time()
-    check_and_trigger_update()  # Initial update check
+    check_for_updates()  # Initial update check
 
     while True:
         meaningful = observe_system(cycle, lore_enabled, stealth_mode)
@@ -199,7 +221,7 @@ def run_daemon():
 
         now = time.time()
         if now - last_update_check >= UPDATE_CHECK_INTERVAL:
-            check_and_trigger_update()
+            check_for_updates()
             last_update_check = now
 
         if not stealth_mode:
