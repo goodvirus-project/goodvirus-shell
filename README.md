@@ -8,6 +8,15 @@
 
 ---
 
+## 📚 Documentation
+
+- 📦 [Installation Guide (INSTALL.md)](./INSTALL.md)
+- 🔐 [Concerns & Ethics (CONCERNS.md)](./CONCERNS.md)
+- 🧾 [Security Policy (SECURITY.md)](./SECURITY.md)
+- 🧪 [Changelog (Coming Soon)](./CHANGELOG.md)
+
+---
+
 ## 🧬 What is GooDViruS™?
 
 **GooDViruS™** is an ethical system watchdog daemon that quietly runs in the background and scans your system for:
