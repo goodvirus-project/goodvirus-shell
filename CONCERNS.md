@@ -29,11 +29,24 @@ GooDViruS™ does **not** transmit, share, or exfiltrate your data in any way �
 
 ---
 
+## 🔐 My Promise to You (from Nico)
+
+I will **never** upload any GooDViruS™ update that:
+- Harms your system
+- Steals your data
+- Adds spyware, backdoors, or any suspicious code
+
+Every update is **100% readable**, **visible**, and **unencrypted**.  
+You can inspect the source anytime.  
+There is **nothing hidden** — ever.
+
+---
+
 ## 🔄 Auto-Update Behavior
 
 - GooDViruS™ checks PyPI every 10 minutes  
 - If a new version is available, it runs:
-  ```
+  ```bash
   pip install --upgrade goodvirus
   ```
 - There is **no background repo**, **no auto-clone**, and **no remote control**
@@ -42,7 +55,7 @@ Updates are public, verifiable, and 100% opt-out (disable auto-update in config)
 
 ---
 
-## 🔍 What It Scans (v1.2.0)
+## 🔍 What It Scans (v1.2.6)
 
 GooDViruS™ now scans **your entire system**, not just its own folder.
 
@@ -72,6 +85,21 @@ Set `false` to disable full-system scanning.
 
 ---
 
+## 🗂️ No Bloat Protection (Yet)
+
+Currently, GooDViruS™ logs **everything** that looks suspicious — with **no limit**.
+
+- Logs can grow to **gigabytes of data** if left running for long periods  
+- This is by design: **nothing is hidden or filtered**
+- You are encouraged to **manually review and clean** logs occasionally
+
+Future versions will include:
+- Smart memory trimming
+- Confidence-based filtering
+- Whitelist support
+
+---
+
 ## 🔒 Local-Only Data
 
 - File memory is stored at:
@@ -91,9 +119,9 @@ You can inspect or delete any log or memory file at any time.
 
 ## 🔐 Want Encrypted Logging?
 
-By default, logs are **plain text** — readable for non-technical users who want to understand what's going on.
+By default, logs are **plain text** — readable for non-technical users.
 
-If you prefer **encrypted logs**, just open an issue on GitHub or send an email.
+If you want **encrypted logs**, open a request on GitHub or send an email.
 
 Once requested, a future version will include:
 
@@ -102,7 +130,7 @@ Once requested, a future version will include:
 encrypt_logs = true
 ```
 
-This will enable secure, local AES encryption for all logs — opt-in only.
+This will enable secure local AES encryption for all logs — opt-in only.
 
 ---
 
@@ -132,4 +160,4 @@ Email: goodvirus.project@proton.me
 ---
 
 Stay safe. Stay aware. Stay in control.  
-**GooDViruS™ is watching for you — and only you.**
+**GooDViruS™ is watching for you — and only you.** 💉
