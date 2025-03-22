@@ -9,6 +9,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from core.memory_handler import remember_file, load_memory
 from core.virus_detection import is_potentially_malicious
+from core.update_manager import check_and_trigger_update
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONFIG_FILE = os.path.join(BASE_DIR, "config", "daemon_config.ini")
@@ -22,6 +23,7 @@ stealth_mode = False
 
 os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
 
+# ─────────────────────────────────────────────────────────────
 def log(msg, newline=False):
     timestamp = datetime.datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")
     formatted = f"{timestamp} {msg}"
@@ -41,6 +43,7 @@ def load_config():
 
     return interval, signature, lore_enabled, stealth
 
+# ─────────────────────────────────────────────────────────────
 def lore_whisper():
     messages = [
         "I saw something I wasn't meant to. But I remember it now.",
@@ -70,6 +73,7 @@ def targeted_lore(filename):
         return "I see the login file. Who else might?"
     return f"You thought '{filename.strip()}' could hide from me?"
 
+# ─────────────────────────────────────────────────────────────
 def observe_system(cycle_count, lore_enabled, stealth):
     global last_lore_time
     log_activity_happened = False
@@ -119,7 +123,6 @@ def observe_system(cycle_count, lore_enabled, stealth):
                 entry = result.get("entry")
                 file_id = entry["id"]
 
-                # === Keyword Match ===
                 if any(keyword in lowered for keyword in suspicious_keywords):
                     if result.get("new"):
                         log(f"[FILE]    Suspicious file flagged:", newline=True)
@@ -134,7 +137,6 @@ def observe_system(cycle_count, lore_enabled, stealth):
                         log(f"[MEMORY]  File ID {file_id} renamed in memory.")
                         log_activity_happened = True
 
-                # === Heuristic Malware Detection ===
                 malware_check = is_potentially_malicious(full_path)
                 if malware_check["suspicious"]:
                     log(f"[MALWARE] File {file_id} appears suspicious → {malware_check['reason']}")
@@ -156,6 +158,7 @@ def observe_system(cycle_count, lore_enabled, stealth):
 
     return log_activity_happened
 
+# ─────────────────────────────────────────────────────────────
 def cleanup_logs(retention_seconds=150):
     now = datetime.datetime.now()
     cleaned_lines = []
@@ -179,6 +182,7 @@ def cleanup_logs(retention_seconds=150):
     with open(LOG_FILE, "w") as file:
         file.writelines(cleaned_lines)
 
+# ─────────────────────────────────────────────────────────────
 def run_daemon():
     global stealth_mode
     cycle = 1
@@ -187,6 +191,8 @@ def run_daemon():
     log("[BOOT]    GooDViruS™ Observer Mode initialized.", newline=True)
     log(f"[INFO]    Running from: {sys.executable}")
     log("[DEBUG]   Entering observer loop...")
+
+    check_and_trigger_update()  # 🧠 Optional: run update check before scanning
 
     while True:
         meaningful = observe_system(cycle, lore_enabled, stealth_mode)
@@ -201,5 +207,6 @@ def run_daemon():
         cycle += 1
         time.sleep(interval)
 
+# ─────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     run_daemon()
