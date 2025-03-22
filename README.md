@@ -139,17 +139,24 @@ Reach out anytime:
 
 ---
 
-## 📦 Roadmap & Coming Soon
+## 📦 Roadmap & Feature Status
 
-- ✅ `watcher.py` — Passive system scanner (done)  
-- ✅ `daemon_config.ini` — Lightweight config file (done)  
-- ✅ `install_daemon.py` — Fancy installer (done)  
-- ✅ `observer_log.txt` — Sample logs (done)  
-- ✅ `daemon_lore` — Lore whisper function (done)  
-- 🛡️ `SECURITY.md` — Ethical and safety guidelines (live)  
-- 🔜 `stealth_mode` — Silent logging, no terminal output  
-- 🔜 `core_module` repo — Signed updates for full daemon mode  
-- 🔜 `PyInstaller` binary mode for offline users  
+- ✅ `watcher.py` — Passive system scanner *(now `observer.py`)*
+- ✅ `daemon_config.ini` — Lightweight config file with stealth, lore, interval
+- ✅ `install_daemon.py` — Simple installer for deployment
+- ✅ `observer_log.txt` — Live, auto-cleaning log output
+- ✅ `daemon_lore` — Smart LORE engine with cooldown + targeted whispers
+- ✅ `stealth_mode` — Silent cycles, logs only real alerts
+- ✅ Intelligent signature system — Only signs when needed
+- ✅ No repeat alerting — Flags each file/process only once per session
+- ✅ Log cleanup — `[SECURE]` cycles older than 2.5 mins auto-purged
+- 🛡️ `SECURITY.md` — Ethical and safety guidelines (live)
+- 🔜 `core_module` repo — Signed updates, core handler for system-wide integration
+- 🔜 `PyInstaller` support — Binary mode for offline/air-gapped installs
+- 🔜 Persistent memory — Flag history saved across sessions
+- 🔜 Threat hashing — SHA256 file fingerprinting to catch renamed copies
+- 🔜 Realtime alerts — Optional `.alerts/` file or desktop notifications
+  
 
 ---
 
