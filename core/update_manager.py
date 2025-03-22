@@ -9,7 +9,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LOCAL_VERSION_FILE = os.path.join(BASE_DIR, "version.txt")
 UPDATE_LOG = os.path.join(BASE_DIR, "logs", "self_update_log.txt")
 
-REMOTE_BASE = "https://github.com/goodvirus-project/GooDViruS-updates/tree/main/latest"
+REMOTE_BASE = "https://raw.githubusercontent.com/goodvirus-project/GooDViruS-updates/main/latest/"
 REMOTE_VERSION_URL = REMOTE_BASE + "version.txt"
 REMOTE_MANIFEST_URL = REMOTE_BASE + "files_manifest.txt"
 REMOTE_SIGNATURE_URL = REMOTE_BASE + "update.sig"
