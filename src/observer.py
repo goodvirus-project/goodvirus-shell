@@ -6,6 +6,10 @@ import os
 import random
 import sys
 
+# ─────────────────────────────────────────────────────────────
+# PATH FIX FOR MODULES
+# ─────────────────────────────────────────────────────────────
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from core.memory_handler import remember_file, load_memory
 
@@ -34,16 +38,18 @@ def log(msg, newline=False):
         print("\n" + formatted if newline else formatted)
 
 # ─────────────────────────────────────────────────────────────
-# CONFIG LOADER
+# CONFIG LOADER (safe defaults)
 # ─────────────────────────────────────────────────────────────
 
 def load_config():
     config = configparser.ConfigParser()
     config.read(CONFIG_FILE)
+
     interval = int(config.get("Daemon", "interval", fallback="10"))
     signature = config.getboolean("Daemon", "show_signature", fallback=True)
     lore_enabled = config.getboolean("Daemon", "daemon_lore", fallback=False)
     stealth = config.getboolean("Daemon", "stealth_mode", fallback=False)
+
     return interval, signature, lore_enabled, stealth
 
 # ─────────────────────────────────────────────────────────────
@@ -88,7 +94,7 @@ def observe_system(cycle_count, lore_enabled, stealth):
     log_activity_happened = False
 
     processes = [(p.info["pid"], p.info["name"]) for p in psutil.process_iter(attrs=["pid", "name"])]
-    cpu = psutil.cpu_percent(interval=1)
+    cpu = psutil.cpu_percent(interval=None)
     ram = psutil.virtual_memory().percent
 
     if not stealth:
@@ -134,7 +140,6 @@ def observe_system(cycle_count, lore_enabled, stealth):
                 log(f"[MEMORY]  File ID {file_id} renamed in memory.")
                 log_activity_happened = True
 
-    # Random LORE (cooldown)
     now = time.time()
     if lore_enabled and (now - last_lore_time) > LORE_COOLDOWN:
         if random.random() < 0.3:
@@ -182,6 +187,7 @@ def run_daemon():
 
     log("[BOOT]    GooDViruS™ Observer Mode initialized.", newline=True)
     log(f"[INFO]    Running from: {sys.executable}")
+    log("[DEBUG]   Entering observer loop...")
 
     while True:
         meaningful = observe_system(cycle, lore_enabled, stealth_mode)
