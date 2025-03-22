@@ -8,14 +8,15 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from core.memory_handler import remember_file, load_memory
+from core.virus_detection import is_potentially_malicious
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONFIG_FILE = os.path.join(BASE_DIR, "config", "daemon_config.ini")
 LOG_FILE = os.path.join(BASE_DIR, "logs", "observer_log.txt")
 
 LORE_COOLDOWN = 180
-CPU_FAILSAFE_THRESHOLD = 80  # %
-CPU_FAILSAFE_DELAY = 5       # seconds
+CPU_FAILSAFE_THRESHOLD = 80
+CPU_FAILSAFE_DELAY = 5
 last_lore_time = 0
 stealth_mode = False
 
@@ -89,7 +90,6 @@ def observe_system(cycle_count, lore_enabled, stealth):
         log(f"[PROC]    Detected {len(processes)} processes.")
         log(f"[RES]     CPU: {cpu_load}% | RAM: {ram}%")
 
-    # Process scanning
     flagged_procs = [proc for proc in processes if "cheat" in proc[1].lower() or "inject" in proc[1].lower()]
     if flagged_procs:
         log(f"[ALERT]   Suspicious processes detected:", newline=True)
@@ -99,11 +99,10 @@ def observe_system(cycle_count, lore_enabled, stealth):
     elif not stealth:
         log(f"[SECURE]  No suspicious processes detected.")
 
-    # Full system file scan
     suspicious_keywords = ["bank", "password", "secret", "key", "login"]
-    root_to_scan = BASE_DIR  # CHANGE TO "/" for full machine scan (Linux only)
-
+    root_to_scan = BASE_DIR
     scanned_file_count = 0
+
     for dirpath, _, filenames in os.walk(root_to_scan):
         for filename in filenames:
             try:
@@ -113,14 +112,15 @@ def observe_system(cycle_count, lore_enabled, stealth):
                 lowered = filename.lower()
                 scanned_file_count += 1
 
+                result = remember_file(full_path)
+                if not result:
+                    continue
+
+                entry = result.get("entry")
+                file_id = entry["id"]
+
+                # === Keyword Match ===
                 if any(keyword in lowered for keyword in suspicious_keywords):
-                    result = remember_file(full_path)
-                    if not result:
-                        continue
-
-                    entry = result.get("entry")
-                    file_id = entry["id"]
-
                     if result.get("new"):
                         log(f"[FILE]    Suspicious file flagged:", newline=True)
                         log(f"[FLAG]    File {file_id} → {full_path}")
@@ -133,6 +133,13 @@ def observe_system(cycle_count, lore_enabled, stealth):
                         log(f"[RENAME]  File {file_id}: '{entry['original_name']}' → '{entry['last_known_name']}'")
                         log(f"[MEMORY]  File ID {file_id} renamed in memory.")
                         log_activity_happened = True
+
+                # === Heuristic Malware Detection ===
+                malware_check = is_potentially_malicious(full_path)
+                if malware_check["suspicious"]:
+                    log(f"[MALWARE] File {file_id} appears suspicious → {malware_check['reason']}")
+                    log_activity_happened = True
+
             except Exception as e:
                 if not stealth:
                     log(f"[ERROR]   Failed to scan file: {filename} ({str(e)})")
@@ -140,7 +147,6 @@ def observe_system(cycle_count, lore_enabled, stealth):
     if not stealth:
         log(f"[DEBUG]   Scanned {scanned_file_count} files.")
 
-    # Random lore whisper
     now = time.time()
     if lore_enabled and (now - last_lore_time) > LORE_COOLDOWN:
         if random.random() < 0.3:
