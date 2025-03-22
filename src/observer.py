@@ -27,7 +27,8 @@ def log(msg, newline=False):
     formatted = f"{timestamp} {msg}"
     with open(LOG_FILE, "a") as log_file:
         log_file.write(formatted + "\n")
-    print("\n" + formatted if newline else formatted)
+    if not stealth_mode:
+        print("\n" + formatted if newline else formatted)
 
 # ─────────────────────────────────────────────────────────────
 # CONFIG LOADER
@@ -73,14 +74,13 @@ def targeted_lore(filename):
         return "Keys left in the open... Were you planning to lock anything?"
     elif "login" in name:
         return "I see the login file. Who else might?"
-    else:
-        return f"You thought '{filename.strip()}' could hide from me?"
+    return f"You thought '{filename.strip()}' could hide from me?"
 
 # ─────────────────────────────────────────────────────────────
 # OBSERVATION LOGIC
 # ─────────────────────────────────────────────────────────────
 
-def observe_system(cycle_count, lore_enabled, stealth_mode):
+def observe_system(cycle_count, lore_enabled, stealth):
     global last_lore_time
     log_activity_happened = False
 
@@ -88,7 +88,7 @@ def observe_system(cycle_count, lore_enabled, stealth_mode):
     cpu = psutil.cpu_percent(interval=1)
     ram = psutil.virtual_memory().percent
 
-    if not stealth_mode:
+    if not stealth:
         print("\n" + "=" * 60)
         log(f"[CYCLE #{cycle_count}] Observing system...", newline=True)
         log(f"[PROC]    Detected {len(processes)} processes.")
@@ -101,7 +101,7 @@ def observe_system(cycle_count, lore_enabled, stealth_mode):
         for pid, name in flagged_procs:
             log(f"[FLAG]    PID {pid} → {name}")
         log_activity_happened = True
-    elif not stealth_mode:
+    elif not stealth:
         log(f"[SECURE]  No suspicious processes detected.")
 
     # File scanning
@@ -110,11 +110,11 @@ def observe_system(cycle_count, lore_enabled, stealth_mode):
 
     for fname in os.listdir("."):
         if os.path.isfile(fname):
-            lower = fname.lower()
-            if fname not in flagged_files_memory:
+            normalized = fname.strip().lower()
+            if normalized not in flagged_files_memory:
                 for keyword in suspicious_keywords:
-                    if keyword in lower:
-                        flagged_files_memory.add(fname)
+                    if keyword in normalized:
+                        flagged_files_memory.add(normalized)
                         newly_flagged.append(fname.strip())
                         break
 
@@ -167,6 +167,7 @@ def cleanup_logs(retention_seconds=150):
 # ─────────────────────────────────────────────────────────────
 
 def run_daemon():
+    global stealth_mode  # Make stealth_mode visible to log()
     cycle = 1
     interval, signature, lore_enabled, stealth_mode = load_config()
 
