@@ -18,12 +18,12 @@ LOG_FILE = os.path.join(BASE_DIR, "logs", "observer_log.txt")
 LORE_COOLDOWN = 180
 CPU_FAILSAFE_THRESHOLD = 80
 CPU_FAILSAFE_DELAY = 5
+UPDATE_CHECK_INTERVAL = 600  # 10 minutes
 last_lore_time = 0
 stealth_mode = False
 
 os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
 
-# ─────────────────────────────────────────────────────────────
 def log(msg, newline=False):
     timestamp = datetime.datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")
     formatted = f"{timestamp} {msg}"
@@ -43,7 +43,6 @@ def load_config():
 
     return interval, signature, lore_enabled, stealth
 
-# ─────────────────────────────────────────────────────────────
 def lore_whisper():
     messages = [
         "I saw something I wasn't meant to. But I remember it now.",
@@ -73,7 +72,6 @@ def targeted_lore(filename):
         return "I see the login file. Who else might?"
     return f"You thought '{filename.strip()}' could hide from me?"
 
-# ─────────────────────────────────────────────────────────────
 def observe_system(cycle_count, lore_enabled, stealth):
     global last_lore_time
     log_activity_happened = False
@@ -158,7 +156,6 @@ def observe_system(cycle_count, lore_enabled, stealth):
 
     return log_activity_happened
 
-# ─────────────────────────────────────────────────────────────
 def cleanup_logs(retention_seconds=150):
     now = datetime.datetime.now()
     cleaned_lines = []
@@ -182,7 +179,6 @@ def cleanup_logs(retention_seconds=150):
     with open(LOG_FILE, "w") as file:
         file.writelines(cleaned_lines)
 
-# ─────────────────────────────────────────────────────────────
 def run_daemon():
     global stealth_mode
     cycle = 1
@@ -192,13 +188,19 @@ def run_daemon():
     log(f"[INFO]    Running from: {sys.executable}")
     log("[DEBUG]   Entering observer loop...")
 
-    check_and_trigger_update()  # 🧠 Optional: run update check before scanning
+    last_update_check = time.time()
+    check_and_trigger_update()  # Initial update check
 
     while True:
         meaningful = observe_system(cycle, lore_enabled, stealth_mode)
 
         if signature and meaningful:
             log("[SIGN]    // GooDViruS™ was here. You're safer now.")
+
+        now = time.time()
+        if now - last_update_check >= UPDATE_CHECK_INTERVAL:
+            check_and_trigger_update()
+            last_update_check = now
 
         if not stealth_mode:
             print("\n" + "=" * 60 + "\n")
@@ -207,6 +209,5 @@ def run_daemon():
         cycle += 1
         time.sleep(interval)
 
-# ─────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     run_daemon()
