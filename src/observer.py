@@ -16,7 +16,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONFIG_FILE = os.path.join(BASE_DIR, "config", "daemon_config.ini")
 LOG_FILE = os.path.join(BASE_DIR, "logs", "observer_log.txt")
 
-LORE_COOLDOWN = 180  # seconds
+LORE_COOLDOWN = 180
 last_lore_time = 0
 
 # ─────────────────────────────────────────────────────────────
@@ -109,29 +109,31 @@ def observe_system(cycle_count, lore_enabled, stealth):
     # File scanning
     suspicious_keywords = ["bank", "password", "secret", "key", "login"]
     all_files = [f for f in os.listdir(".") if os.path.isfile(f)]
-    memory_snap = load_memory()
 
     for file in all_files:
         lowered = file.lower()
         if any(keyword in lowered for keyword in suspicious_keywords):
             result = remember_file(file)
+            if not result:
+                continue
 
-            if result:
-                entry = result.get("entry")
-                file_id = entry["id"]
+            entry = result.get("entry")
+            file_id = entry["id"]
 
-                if result.get("new"):
-                    log(f"[FILE]    Suspicious file flagged:", newline=True)
-                    log(f"[FLAG]    File {file_id} → {file}")
-                    if lore_enabled:
-                        log(f"[LORE]    {targeted_lore(file)}")
-                    log_activity_happened = True
+            if result.get("new"):
+                log(f"[FILE]    Suspicious file flagged:", newline=True)
+                log(f"[FLAG]    File {file_id} → {file}")
+                log(f"[MEMORY]  File ID {file_id} added to memory.")
+                if lore_enabled:
+                    log(f"[LORE]    {targeted_lore(file)}")
+                log_activity_happened = True
 
-                elif result.get("renamed"):
-                    log(f"[RENAME]  File {file_id}: '{entry['original_name']}' → '{entry['last_known_name']}'")
-                    log_activity_happened = True
+            elif result.get("renamed"):
+                log(f"[RENAME]  File {file_id}: '{entry['original_name']}' → '{entry['last_known_name']}'")
+                log(f"[MEMORY]  File ID {file_id} renamed in memory.")
+                log_activity_happened = True
 
-    # Random LORE if nothing flagged
+    # Random LORE (cooldown)
     now = time.time()
     if lore_enabled and (now - last_lore_time) > LORE_COOLDOWN:
         if random.random() < 0.3:

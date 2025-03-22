@@ -6,7 +6,7 @@ import random
 import string
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MEMORY_FILE = os.path.join(BASE_DIR, ".gv_memory.json")
+MEMORY_FILE = os.path.join(BASE_DIR, "logs", ".gv_memory.json")
 
 def _generate_id():
     return "GV-" + ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
@@ -25,13 +25,16 @@ def _calculate_hash(file_path):
         return None
 
 def load_memory():
+    os.makedirs(os.path.dirname(MEMORY_FILE), exist_ok=True)
     if os.path.exists(MEMORY_FILE):
         try:
             with open(MEMORY_FILE, "r") as f:
                 return json.load(f)
         except Exception:
             return []
-    return []
+    else:
+        save_memory([])  # Initialize if not found
+        return []
 
 def save_memory(memory):
     try:
@@ -44,7 +47,7 @@ def remember_file(file_path):
     memory = load_memory()
     file_hash = _calculate_hash(file_path)
     if not file_hash:
-        return None  # Skip unhashable
+        return None  # Unreadable file
 
     for entry in memory:
         if entry["hash"] == file_hash:
@@ -54,7 +57,7 @@ def remember_file(file_path):
                 return {"renamed": True, "entry": entry}
             return {"renamed": False, "entry": entry}
 
-    # If new file, add it
+    # New file
     new_entry = {
         "hash": file_hash,
         "original_name": file_path,
@@ -65,14 +68,3 @@ def remember_file(file_path):
     memory.append(new_entry)
     save_memory(memory)
     return {"new": True, "entry": new_entry}
-
-def get_known_hashes():
-    memory = load_memory()
-    return [entry["hash"] for entry in memory]
-
-def get_entry_by_hash(file_hash):
-    memory = load_memory()
-    for entry in memory:
-        if entry["hash"] == file_hash:
-            return entry
-    return None
