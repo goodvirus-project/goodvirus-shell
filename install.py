@@ -108,5 +108,12 @@ def main():
     detect_config(install_dir)
     finish(install_dir)
 
+input("\n\n[Press ENTER to exit]")
+
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print("\n❌ INSTALLER ERROR:")
+        print(str(e))
+        input("\n[Press ENTER to exit]")
