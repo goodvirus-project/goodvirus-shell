@@ -6,40 +6,28 @@ import os
 import random
 import sys
 
-# ─────────────────────────────────────────────────────────────
-# PATH FIX FOR MODULES
-# ─────────────────────────────────────────────────────────────
-
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from core.memory_handler import remember_file, load_memory
-
-# ─────────────────────────────────────────────────────────────
-# CONFIG + PATHS
-# ─────────────────────────────────────────────────────────────
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONFIG_FILE = os.path.join(BASE_DIR, "config", "daemon_config.ini")
 LOG_FILE = os.path.join(BASE_DIR, "logs", "observer_log.txt")
 
 LORE_COOLDOWN = 180
+CPU_FAILSAFE_THRESHOLD = 80  # %
+CPU_FAILSAFE_DELAY = 5       # seconds
 last_lore_time = 0
+stealth_mode = False
 
-# ─────────────────────────────────────────────────────────────
-# LOGGING FUNCTION
-# ─────────────────────────────────────────────────────────────
+os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
 
 def log(msg, newline=False):
     timestamp = datetime.datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")
-    os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
     formatted = f"{timestamp} {msg}"
     with open(LOG_FILE, "a") as log_file:
         log_file.write(formatted + "\n")
     if not stealth_mode:
         print("\n" + formatted if newline else formatted)
-
-# ─────────────────────────────────────────────────────────────
-# CONFIG LOADER (safe defaults)
-# ─────────────────────────────────────────────────────────────
 
 def load_config():
     config = configparser.ConfigParser()
@@ -51,10 +39,6 @@ def load_config():
     stealth = config.getboolean("Daemon", "stealth_mode", fallback=False)
 
     return interval, signature, lore_enabled, stealth
-
-# ─────────────────────────────────────────────────────────────
-# LORE SYSTEM
-# ─────────────────────────────────────────────────────────────
 
 def lore_whisper():
     messages = [
@@ -85,23 +69,25 @@ def targeted_lore(filename):
         return "I see the login file. Who else might?"
     return f"You thought '{filename.strip()}' could hide from me?"
 
-# ─────────────────────────────────────────────────────────────
-# OBSERVATION LOGIC
-# ─────────────────────────────────────────────────────────────
-
 def observe_system(cycle_count, lore_enabled, stealth):
     global last_lore_time
     log_activity_happened = False
 
-    processes = [(p.info["pid"], p.info["name"]) for p in psutil.process_iter(attrs=["pid", "name"])]
-    cpu = psutil.cpu_percent(interval=None)
+    cpu_load = psutil.cpu_percent(interval=None)
     ram = psutil.virtual_memory().percent
+
+    if cpu_load > CPU_FAILSAFE_THRESHOLD:
+        log(f"[FAILSAFE] High CPU load ({cpu_load}%). Pausing scan cycle.", newline=True)
+        time.sleep(CPU_FAILSAFE_DELAY)
+        return False
+
+    processes = [(p.info["pid"], p.info["name"]) for p in psutil.process_iter(attrs=["pid", "name"])]
 
     if not stealth:
         print("\n" + "=" * 60)
         log(f"[CYCLE #{cycle_count}] Observing system...", newline=True)
         log(f"[PROC]    Detected {len(processes)} processes.")
-        log(f"[RES]     CPU: {cpu}% | RAM: {ram}%")
+        log(f"[RES]     CPU: {cpu_load}% | RAM: {ram}%")
 
     # Process scanning
     flagged_procs = [proc for proc in processes if "cheat" in proc[1].lower() or "inject" in proc[1].lower()]
@@ -113,33 +99,48 @@ def observe_system(cycle_count, lore_enabled, stealth):
     elif not stealth:
         log(f"[SECURE]  No suspicious processes detected.")
 
-    # File scanning
+    # Full system file scan
     suspicious_keywords = ["bank", "password", "secret", "key", "login"]
-    all_files = [f for f in os.listdir(".") if os.path.isfile(f)]
+    root_to_scan = BASE_DIR  # CHANGE TO "/" for full machine scan (Linux only)
 
-    for file in all_files:
-        lowered = file.lower()
-        if any(keyword in lowered for keyword in suspicious_keywords):
-            result = remember_file(file)
-            if not result:
-                continue
+    scanned_file_count = 0
+    for dirpath, _, filenames in os.walk(root_to_scan):
+        for filename in filenames:
+            try:
+                full_path = os.path.join(dirpath, filename)
+                if not os.path.isfile(full_path):
+                    continue
+                lowered = filename.lower()
+                scanned_file_count += 1
 
-            entry = result.get("entry")
-            file_id = entry["id"]
+                if any(keyword in lowered for keyword in suspicious_keywords):
+                    result = remember_file(full_path)
+                    if not result:
+                        continue
 
-            if result.get("new"):
-                log(f"[FILE]    Suspicious file flagged:", newline=True)
-                log(f"[FLAG]    File {file_id} → {file}")
-                log(f"[MEMORY]  File ID {file_id} added to memory.")
-                if lore_enabled:
-                    log(f"[LORE]    {targeted_lore(file)}")
-                log_activity_happened = True
+                    entry = result.get("entry")
+                    file_id = entry["id"]
 
-            elif result.get("renamed"):
-                log(f"[RENAME]  File {file_id}: '{entry['original_name']}' → '{entry['last_known_name']}'")
-                log(f"[MEMORY]  File ID {file_id} renamed in memory.")
-                log_activity_happened = True
+                    if result.get("new"):
+                        log(f"[FILE]    Suspicious file flagged:", newline=True)
+                        log(f"[FLAG]    File {file_id} → {full_path}")
+                        log(f"[MEMORY]  File ID {file_id} added to memory.")
+                        if lore_enabled:
+                            log(f"[LORE]    {targeted_lore(filename)}")
+                        log_activity_happened = True
 
+                    elif result.get("renamed"):
+                        log(f"[RENAME]  File {file_id}: '{entry['original_name']}' → '{entry['last_known_name']}'")
+                        log(f"[MEMORY]  File ID {file_id} renamed in memory.")
+                        log_activity_happened = True
+            except Exception as e:
+                if not stealth:
+                    log(f"[ERROR]   Failed to scan file: {filename} ({str(e)})")
+
+    if not stealth:
+        log(f"[DEBUG]   Scanned {scanned_file_count} files.")
+
+    # Random lore whisper
     now = time.time()
     if lore_enabled and (now - last_lore_time) > LORE_COOLDOWN:
         if random.random() < 0.3:
@@ -148,10 +149,6 @@ def observe_system(cycle_count, lore_enabled, stealth):
             log_activity_happened = True
 
     return log_activity_happened
-
-# ─────────────────────────────────────────────────────────────
-# LOG CLEANUP
-# ─────────────────────────────────────────────────────────────
 
 def cleanup_logs(retention_seconds=150):
     now = datetime.datetime.now()
@@ -175,10 +172,6 @@ def cleanup_logs(retention_seconds=150):
 
     with open(LOG_FILE, "w") as file:
         file.writelines(cleaned_lines)
-
-# ─────────────────────────────────────────────────────────────
-# MAIN DAEMON LOOP
-# ─────────────────────────────────────────────────────────────
 
 def run_daemon():
     global stealth_mode
