@@ -38,52 +38,43 @@ GooDViruS™ does **not** transmit, share, or exfiltrate your data in any way �
   ```
 - There is **no background repo**, **no auto-clone**, and **no remote control**
 
-Updates are public, verifiable, and 100% opt-out (disable auto-update if needed).
+Updates are public, verifiable, and 100% opt-out (disable auto-update in config).
 
 ---
 
-## 🔍 What It Scans (Current Version)
+## 🔍 What It Scans (v1.2.0)
+
+GooDViruS™ now scans **your entire system**, not just its own folder.
+
+### It looks for:
 
 - Suspicious file names (e.g., `bank`, `password`, `secret`, `key`, `login`)  
 - Files with malware-like patterns or high entropy  
 - Processes with names like `cheat`, `inject`  
-- The current working directory and subfolders only
+- Files that are renamed or relocated after being flagged  
 
-**It does NOT access your camera, microphone, browser data, or private accounts.**
+### 🔭 Scan Scope:
 
----
+- By default, it scans **everything** (all drives, all users, all system folders)  
+- If you prefer, you can restrict it to just its local directory
 
-## 🧭 Upcoming Feature: Full-System Scan (Next Update)
-
-In the **next update**, GooDViruS™ will include a **full host scan** feature.
-
-### 🔧 What it does:
-
-- Recursively scans **your entire computer** (all drives and user directories)  
-- Protects system integrity by detecting deeply hidden threats  
-- Actively monitors attempts to **tamper with GooDViruS™ itself**
-
-### 🛑 Can I disable this?
-
-Yes. When this feature goes live, a new option will appear in your config file:
+To toggle this, edit your config:
 
 ```
 [Daemon]
 full_host_scan = true
 ```
 
-Set to `false` if you want to disable it.
+Set `false` to disable full-system scanning.
 
 > ⚠️ **Disabling full_host_scan is NOT recommended.**  
-> GooDViruS™ is designed to function as a self-defending antivirus-like system. Disabling full-system scanning may reduce its effectiveness and leave your system vulnerable.
-
-This option exists to preserve your control — but the feature is included to protect *you* and *the daemon itself*.
+> GooDViruS™ is designed to behave like an antivirus. Disabling this feature may limit its ability to detect threats — or to protect itself from being disabled.
 
 ---
 
 ## 🔒 Local-Only Data
 
-- All file memory is stored in:
+- File memory is stored at:
   ```
   goodvirus/logs/gv_memory.json
   ```
@@ -93,26 +84,25 @@ This option exists to preserve your control — but the feature is included to p
   goodvirus/logs/observer_log.txt
   ```
 
-Nothing is sent over the internet. Nothing is hidden or encrypted.
-
-You can delete any log or memory file at any time.
+Nothing is sent over the internet. Nothing is hidden.  
+You can inspect or delete any log or memory file at any time.
 
 ---
 
 ## 🔐 Want Encrypted Logging?
 
-By default, logs are **plain text** — readable for non-technical users who want to understand what’s going on.
+By default, logs are **plain text** — readable for non-technical users who want to understand what's going on.
 
-If you prefer **encrypted logging** for extra privacy, open a request on GitHub or send an email.
+If you prefer **encrypted logs**, just open an issue on GitHub or send an email.
 
-Once requested, a future version will include optional log encryption via config:
+Once requested, a future version will include:
 
 ```
 [Daemon]
 encrypt_logs = true
 ```
 
-This will encrypt all logs using secure local AES encryption — but only if you explicitly enable it.
+This will enable secure, local AES encryption for all logs — opt-in only.
 
 ---
 
@@ -125,7 +115,7 @@ GooDViruS™ behaves like a virus — but one designed for good.
 - It remembers, but only for your protection  
 - It grows — but only with your permission
 
-Its purpose is defense. Not control.
+Its purpose is **defense**, not control.
 
 ---
 
@@ -134,9 +124,10 @@ Its purpose is defense. Not control.
 Feel free to:
 - Open an issue
 - Fork the code and inspect it yourself
-- Disable features you don’t want
+- Disable any feature via the config file
 
-GitHub: https://github.com/yourusername/goodvirus-shell
+GitHub: https://github.com/yourusername/goodvirus-shell  
+Email: goodvirus.project@proton.me
 
 ---
 

@@ -7,6 +7,7 @@ import random
 import sys
 import subprocess
 import requests
+from packaging import version
 
 from goodvirus.__about__ import __version__, __title__
 from goodvirus.core.memory_handler import remember_file
@@ -19,30 +20,42 @@ LOG_FILE = os.path.join(BASE_DIR, "logs", "observer_log.txt")
 LORE_COOLDOWN = 180
 CPU_FAILSAFE_THRESHOLD = 80
 CPU_FAILSAFE_DELAY = 5
-UPDATE_CHECK_INTERVAL = 600  # 10 minutes
+UPDATE_CHECK_INTERVAL = 600
 last_lore_time = 0
+
 stealth_mode = False
+auto_update = True
+full_host_scan = True
+encrypt_logs = False
+ignore_system_noise = True
 
 os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
 
 def log(msg, newline=False):
     timestamp = datetime.datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")
     formatted = f"{timestamp} {msg}"
-    with open(LOG_FILE, "a") as log_file:
+    with open(LOG_FILE, "a", encoding="utf-8") as log_file:
         log_file.write(formatted + "\n")
     if not stealth_mode:
         print("\n" + formatted if newline else formatted)
 
 def load_config():
+    global stealth_mode, auto_update, full_host_scan, encrypt_logs, ignore_system_noise
+
     config = configparser.ConfigParser()
-    config.read(CONFIG_FILE)
+    with open(CONFIG_FILE, encoding="utf-8") as f:
+        config.read_file(f)
 
     interval = int(config.get("Daemon", "interval", fallback="10"))
+    stealth_mode = config.getboolean("Daemon", "stealth_mode", fallback=False)
     signature = config.getboolean("Daemon", "show_signature", fallback=True)
     lore_enabled = config.getboolean("Daemon", "daemon_lore", fallback=False)
-    stealth = config.getboolean("Daemon", "stealth_mode", fallback=False)
+    auto_update = config.getboolean("Daemon", "auto_update", fallback=True)
+    full_host_scan = config.getboolean("Daemon", "full_host_scan", fallback=True)
+    encrypt_logs = config.getboolean("Daemon", "encrypt_logs", fallback=False)
+    ignore_system_noise = config.getboolean("Daemon", "ignore_system_noise", fallback=True)
 
-    return interval, signature, lore_enabled, stealth
+    return interval, signature, lore_enabled
 
 def lore_whisper():
     messages = [
@@ -73,28 +86,39 @@ def targeted_lore(filename):
         return "I see the login file. Who else might?"
     return f"You thought '{filename.strip()}' could hide from me?"
 
-def check_for_updates(auto_update=True):
+def is_system_path(path):
+    system_dirs = [
+        "C:\\$Recycle.Bin",
+        "C:\\$SysReset",
+        "C:\\Windows\\System32",
+        "C:\\Windows\\WinSxS",
+        "C:\\Program Files",
+        "C:\\ProgramData"
+    ]
+    return any(path.lower().startswith(p.lower()) for p in system_dirs)
+
+def check_for_updates():
+    if not auto_update:
+        log("[UPDATE]  Auto-update is disabled by user config.")
+        return
+
     log(f"[INFO]    GooDViruS™ v{__version__} — Checking for updates...")
 
     try:
         response = requests.get(f"https://pypi.org/pypi/{__title__}/json", timeout=5)
         latest = response.json()["info"]["version"]
 
-        if __version__ != latest:
+        if version.parse(latest) > version.parse(__version__):
             log(f"[UPDATE]  Update available → v{latest}")
-            if auto_update:
-                log(f"[UPDATE]  Running pip install --upgrade {__title__}")
-                subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", __title__], check=True)
-                log("[UPDATE]  Update complete. Please restart GooDViruS™.\n")
-            return True
+            log(f"[UPDATE]  Running pip install --upgrade {__title__}")
+            subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", __title__], check=True)
+            log("[UPDATE]  Update complete. Please restart GooDViruS™.\n")
         else:
             log("[INFO]    You are running the latest version.")
     except Exception as e:
         log(f"[ERROR]   Update check failed: {e}")
 
-    return False
-
-def observe_system(cycle_count, lore_enabled, stealth):
+def observe_system(cycle_count, lore_enabled, signature):
     global last_lore_time
     log_activity_happened = False
 
@@ -108,7 +132,7 @@ def observe_system(cycle_count, lore_enabled, stealth):
 
     processes = [(p.info["pid"], p.info["name"]) for p in psutil.process_iter(attrs=["pid", "name"])]
 
-    if not stealth:
+    if not stealth_mode:
         print("\n" + "=" * 60)
         log(f"[CYCLE #{cycle_count}] Observing system...", newline=True)
         log(f"[PROC]    Detected {len(processes)} processes.")
@@ -120,14 +144,14 @@ def observe_system(cycle_count, lore_enabled, stealth):
         for pid, name in flagged_procs:
             log(f"[FLAG]    PID {pid} → {name}")
         log_activity_happened = True
-    elif not stealth:
+    elif not stealth_mode:
         log(f"[SECURE]  No suspicious processes detected.")
 
     suspicious_keywords = ["bank", "password", "secret", "key", "login"]
-    root_to_scan = BASE_DIR
+    scan_root = os.path.abspath(os.sep) if full_host_scan else BASE_DIR
     scanned_file_count = 0
 
-    for dirpath, _, filenames in os.walk(root_to_scan):
+    for dirpath, _, filenames in os.walk(scan_root):
         for filename in filenames:
             try:
                 full_path = os.path.join(dirpath, filename)
@@ -142,12 +166,23 @@ def observe_system(cycle_count, lore_enabled, stealth):
 
                 entry = result.get("entry")
                 file_id = entry["id"]
+                malware_check = is_potentially_malicious(full_path)
 
-                if any(keyword in lowered for keyword in suspicious_keywords):
+                suspicious_name = any(keyword in lowered for keyword in suspicious_keywords)
+                suspicious_entropy = malware_check["suspicious"]
+
+                if is_system_path(full_path) and ignore_system_noise:
+                    if not suspicious_name and not suspicious_entropy:
+                        continue  # skip quiet system files
+                    else:
+                        log(f"[SYSTEM]  Flagged file in system path: {full_path}")
+
+                if suspicious_name:
                     if result.get("new"):
                         log(f"[FILE]    Suspicious file flagged:", newline=True)
-                        log(f"[FLAG]    File {file_id} → {full_path}")
                         log(f"[MEMORY]  File ID {file_id} added to memory.")
+                        log(f"[PATH]    {full_path}")
+                        log(f"[FLAG]    File {file_id} → {full_path}")
                         if lore_enabled:
                             log(f"[LORE]    {targeted_lore(filename)}")
                         log_activity_happened = True
@@ -157,16 +192,14 @@ def observe_system(cycle_count, lore_enabled, stealth):
                         log(f"[MEMORY]  File ID {file_id} renamed in memory.")
                         log_activity_happened = True
 
-                malware_check = is_potentially_malicious(full_path)
-                if malware_check["suspicious"]:
+                if suspicious_entropy:
                     log(f"[MALWARE] File {file_id} appears suspicious → {malware_check['reason']}")
                     log_activity_happened = True
 
             except Exception as e:
-                if not stealth:
-                    log(f"[ERROR]   Failed to scan file: {filename} ({str(e)})")
+                log(f"[ERROR]   Failed to scan file: {filename} ({str(e)})")
 
-    if not stealth:
+    if not stealth_mode:
         log(f"[DEBUG]   Scanned {scanned_file_count} files.")
 
     now = time.time()
@@ -183,7 +216,7 @@ def cleanup_logs(retention_seconds=150):
     cleaned_lines = []
 
     try:
-        with open(LOG_FILE, "r") as file:
+        with open(LOG_FILE, "r", encoding="utf-8") as file:
             lines = file.readlines()
     except FileNotFoundError:
         return
@@ -198,29 +231,31 @@ def cleanup_logs(retention_seconds=150):
         except Exception:
             cleaned_lines.append(line)
 
-    with open(LOG_FILE, "w") as file:
+    with open(LOG_FILE, "w", encoding="utf-8") as file:
         file.writelines(cleaned_lines)
 
 def run_daemon():
-    global stealth_mode
     cycle = 1
-    interval, signature, lore_enabled, stealth_mode = load_config()
+    interval, signature, lore_enabled = load_config()
 
     log("[BOOT]    GooDViruS™ Observer Mode initialized.", newline=True)
     log(f"[INFO]    Running from: {sys.executable}")
+    log(f"[INFO]    Auto-update: {'Enabled' if auto_update else 'Disabled'}")
+    log(f"[INFO]    Full host scan: {'Enabled' if full_host_scan else 'Disabled'}")
+    log(f"[INFO]    System noise filter: {'Enabled' if ignore_system_noise else 'Disabled'}")
     log("[DEBUG]   Entering observer loop...")
 
     last_update_check = time.time()
-    check_for_updates()  # Initial update check
+    check_for_updates()
 
     while True:
-        meaningful = observe_system(cycle, lore_enabled, stealth_mode)
+        meaningful = observe_system(cycle, lore_enabled, signature)
 
         if signature and meaningful:
             log("[SIGN]    // GooDViruS™ was here. You're safer now.")
 
         now = time.time()
-        if now - last_update_check >= UPDATE_CHECK_INTERVAL:
+        if auto_update and (now - last_update_check >= UPDATE_CHECK_INTERVAL):
             check_for_updates()
             last_update_check = now
 
@@ -231,5 +266,8 @@ def run_daemon():
         cycle += 1
         time.sleep(interval)
 
-if __name__ == "__main__":
+def main():
     run_daemon()
+
+if __name__ == "__main__":
+    main()
