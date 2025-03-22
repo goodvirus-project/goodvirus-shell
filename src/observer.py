@@ -6,6 +6,8 @@ import os
 import random
 import sys
 
+from core.memory_handler import remember_file, load_memory
+
 # ─────────────────────────────────────────────────────────────
 # CONFIG + PATHS
 # ─────────────────────────────────────────────────────────────
@@ -13,8 +15,8 @@ import sys
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONFIG_FILE = os.path.join(BASE_DIR, "config", "daemon_config.ini")
 LOG_FILE = os.path.join(BASE_DIR, "logs", "observer_log.txt")
-flagged_files_memory = set()
-LORE_COOLDOWN = 180  # 3 minutes
+
+LORE_COOLDOWN = 180  # seconds
 last_lore_time = 0
 
 # ─────────────────────────────────────────────────────────────
@@ -40,8 +42,8 @@ def load_config():
     interval = int(config.get("Daemon", "interval", fallback="10"))
     signature = config.getboolean("Daemon", "show_signature", fallback=True)
     lore_enabled = config.getboolean("Daemon", "daemon_lore", fallback=False)
-    stealth_mode = config.getboolean("Daemon", "stealth_mode", fallback=False)
-    return interval, signature, lore_enabled, stealth_mode
+    stealth = config.getboolean("Daemon", "stealth_mode", fallback=False)
+    return interval, signature, lore_enabled, stealth
 
 # ─────────────────────────────────────────────────────────────
 # LORE SYSTEM
@@ -106,32 +108,36 @@ def observe_system(cycle_count, lore_enabled, stealth):
 
     # File scanning
     suspicious_keywords = ["bank", "password", "secret", "key", "login"]
-    newly_flagged = []
+    all_files = [f for f in os.listdir(".") if os.path.isfile(f)]
+    memory_snap = load_memory()
 
-    for fname in os.listdir("."):
-        if os.path.isfile(fname):
-            normalized = fname.strip().lower()
-            if normalized not in flagged_files_memory:
-                for keyword in suspicious_keywords:
-                    if keyword in normalized:
-                        flagged_files_memory.add(normalized)
-                        newly_flagged.append(fname.strip())
-                        break
+    for file in all_files:
+        lowered = file.lower()
+        if any(keyword in lowered for keyword in suspicious_keywords):
+            result = remember_file(file)
 
-    if newly_flagged:
-        log(f"[FILE]    Suspicious files found:", newline=True)
-        for file in newly_flagged:
-            log(f"[FLAG]    File → {file}")
-        if lore_enabled:
-            log(f"[LORE]    {targeted_lore(newly_flagged[0])}")
-        log_activity_happened = True
-    else:
-        now = time.time()
-        if lore_enabled and (now - last_lore_time) > LORE_COOLDOWN:
-            if random.random() < 0.3:
-                log(f"[LORE]    {lore_whisper()}")
-                last_lore_time = now
-                log_activity_happened = True
+            if result:
+                entry = result.get("entry")
+                file_id = entry["id"]
+
+                if result.get("new"):
+                    log(f"[FILE]    Suspicious file flagged:", newline=True)
+                    log(f"[FLAG]    File {file_id} → {file}")
+                    if lore_enabled:
+                        log(f"[LORE]    {targeted_lore(file)}")
+                    log_activity_happened = True
+
+                elif result.get("renamed"):
+                    log(f"[RENAME]  File {file_id}: '{entry['original_name']}' → '{entry['last_known_name']}'")
+                    log_activity_happened = True
+
+    # Random LORE if nothing flagged
+    now = time.time()
+    if lore_enabled and (now - last_lore_time) > LORE_COOLDOWN:
+        if random.random() < 0.3:
+            log(f"[LORE]    {lore_whisper()}")
+            last_lore_time = now
+            log_activity_happened = True
 
     return log_activity_happened
 
@@ -167,7 +173,7 @@ def cleanup_logs(retention_seconds=150):
 # ─────────────────────────────────────────────────────────────
 
 def run_daemon():
-    global stealth_mode  # Make stealth_mode visible to log()
+    global stealth_mode
     cycle = 1
     interval, signature, lore_enabled, stealth_mode = load_config()
 
