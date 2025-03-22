@@ -2,85 +2,84 @@ import os
 import json
 import hashlib
 import datetime
-import random
-import string
+from configparser import ConfigParser
 
-# === PATH SETUP ===
+# Paths
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LOGS_DIR = os.path.join(BASE_DIR, "logs")
-MEMORY_FILE = os.path.join(LOGS_DIR, ".gv_memory.json")
+LOG_DIR = os.path.join(BASE_DIR, "logs")
+MEMORY_FILE = os.path.join(LOG_DIR, "gv_memory.json")
+CONFIG_FILE = os.path.join(BASE_DIR, "config", "daemon_config.ini")
 
-# === UTILITY FUNCTIONS ===
-def _generate_id():
-    """Generate a short unique ID for each flagged file."""
-    return "GV-" + ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+# Ensure log directory exists
+os.makedirs(LOG_DIR, exist_ok=True)
 
-def _get_timestamp():
-    """Return current timestamp as a formatted string."""
-    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+def load_config_limit():
+    """Load maximum memory entry limit from config file."""
+    config = ConfigParser()
+    config.read(CONFIG_FILE, encoding="utf-8")
+    return int(config.get("Daemon", "limit_memory_entries", fallback="1000"))
 
-def _calculate_hash(file_path):
-    """Return SHA256 hash of a file (or None if unreadable)."""
-    try:
-        hasher = hashlib.sha256()
-        with open(file_path, 'rb') as f:
-            while chunk := f.read(4096):
-                hasher.update(chunk)
-        return hasher.hexdigest()
-    except Exception:
-        return None
-
-# === MEMORY MANAGEMENT ===
 def load_memory():
-    """Load memory from JSON, or create if missing."""
-    os.makedirs(LOGS_DIR, exist_ok=True)
-
-    if os.path.exists(MEMORY_FILE):
-        try:
-            with open(MEMORY_FILE, "r") as f:
-                return json.load(f)
-        except Exception as e:
-            print(f"[GooDViruS™] [MEMORY ERROR] Failed to read memory file: {e}")
-            return []
-    else:
-        save_memory([])  # Create empty memory file
+    """Load memory entries from JSON file."""
+    if not os.path.exists(MEMORY_FILE):
+        return []
+    try:
+        with open(MEMORY_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
         return []
 
 def save_memory(memory):
-    """Write memory list to file."""
+    """Save memory list to JSON file, respecting configured entry limit."""
+    max_entries = load_config_limit()
+    if len(memory) > max_entries:
+        memory = memory[-max_entries:]  # Keep only the most recent entries
     try:
-        with open(MEMORY_FILE, "w") as f:
+        with open(MEMORY_FILE, "w", encoding="utf-8") as f:
             json.dump(memory, f, indent=2)
     except Exception as e:
-        print(f"[GooDViruS™] [MEMORY ERROR] Could not save memory: {e}")
+        print(f"[ERROR] Failed to write memory file: {e}")
 
-def remember_file(file_path):
+def hash_file(path):
+    """Generate SHA-256 hash of the file contents."""
+    try:
+        with open(path, "rb") as f:
+            return hashlib.sha256(f.read()).hexdigest()
+    except Exception:
+        return None
+
+def remember_file(path):
     """
-    Track a file based on hash. 
-    If it's new, add to memory.
-    If renamed, update last_known_name.
+    Track and identify files using content hashing.
+    Flags new files, and detects renamed ones by hash.
+    Returns:
+        - {'new': True, 'entry': ...} if the file is newly flagged.
+        - {'renamed': True, 'entry': ...} if a known file was renamed.
+        - None if already known and unchanged.
     """
     memory = load_memory()
-    file_hash = _calculate_hash(file_path)
-
+    file_hash = hash_file(path)
     if not file_hash:
-        return None  # File unreadable or missing
+        return None
 
-    for entry in memory:
-        if entry["hash"] == file_hash:
-            if entry["last_known_name"] != file_path:
-                entry["last_known_name"] = file_path
-                save_memory(memory)
-                return {"renamed": True, "entry": entry}
-            return {"renamed": False, "entry": entry}
+    existing = next((entry for entry in memory if entry["hash"] == file_hash), None)
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # New file detected
+    if existing:
+        if existing["last_known_name"] != path:
+            existing["last_known_name"] = path
+            save_memory(memory)
+            return {"renamed": True, "entry": existing}
+        return None
+
+    # Assign unique ID for the new flagged file
+    file_id = f"GV-{os.urandom(2).hex().upper()}"
     new_entry = {
+        "id": file_id,
         "hash": file_hash,
-        "original_name": file_path,
-        "last_known_name": file_path,
-        "first_seen": _get_timestamp(),
-        "id": _generate_id()
+        "original_name": path,
+        "last_known_name": path,
+        "first_seen": now
     }
     memory.append(new_entry)
     save_memory(memory)

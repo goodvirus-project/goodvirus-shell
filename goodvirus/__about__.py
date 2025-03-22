@@ -1,5 +1,5 @@
 __title__ = "goodvirus"
-__version__ = "1.2.6"
+__version__ = "1.3.0"
 __author__ = "Nico"
 __license__ = "MIT"
 __description__ = "An ethical, self-updating system watchdog daemon with full-system scanning."

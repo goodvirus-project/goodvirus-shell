@@ -1,7 +1,6 @@
 import requests
-import subprocess
-import sys
 from goodvirus.__about__ import __version__, __title__
+from goodvirus.core.update_popup import show_update_popup
 
 def check_for_updates(auto_update=True):
     print(f"\n🧬 GooDViruS™ v{__version__}")
@@ -11,15 +10,20 @@ def check_for_updates(auto_update=True):
         response = requests.get(f"https://pypi.org/pypi/{__title__}/json", timeout=5)
         data = response.json()
         latest_version = data["info"]["version"]
+        changelog = data["info"].get("description", "No changelog available.")
 
         if __version__ != latest_version:
-            print(f"⬆️  Update available! Upgrading to v{latest_version}...")
+            print(f"⬆️  Update available → v{latest_version}")
 
             if auto_update:
-                subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", __title__], check=True)
-                print("✅ Update complete. Please restart GooDViruS™.\n")
+                show_update_popup(
+                    current_version=__version__,
+                    latest_version=latest_version,
+                    changelog=changelog
+                )
             else:
-                print("⚠️  Run manually: pip install --upgrade goodvirus\n")
+                print("⚠️  Update available but auto-update is disabled.")
+                print("🛠️  Run manually: pip install --upgrade goodvirus\n")
         else:
             print("✅ You are running the latest version.\n")
 
